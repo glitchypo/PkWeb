@@ -12,24 +12,43 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
 
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    // ============ RATE-LIMIT LOGIN (per-session) ============
+    // 5 percobaan gagal -> kunci 60 detik (cegah brute-force)
+    if (!isset($_SESSION['login_attempts']))   $_SESSION['login_attempts']   = 0;
+    if (!isset($_SESSION['login_lock_until'])) $_SESSION['login_lock_until'] = 0;
 
-    // PDO prepared statement -> aman dari SQL Injection
-    // Demo: coba input ' OR '1'='1  --> tetap gagal
-    $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = ?');
-    $stmt->execute([$username]);
-    $user = $stmt->fetch();
-
-    if ($user && password_verify($password, $user['password_hash'])) {
-        // Cegah Session Fixation
-        session_regenerate_id(true);
-        $_SESSION['user_id']  = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        header('Location: index.php');
-        exit;
+    if (time() < $_SESSION['login_lock_until']) {
+        $wait = $_SESSION['login_lock_until'] - time();
+        $error = "Terlalu banyak percobaan gagal. Coba lagi dalam $wait detik.";
     } else {
-        $error = 'Username atau password salah.';
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        // PDO prepared statement -> aman dari SQL Injection
+        // Demo: coba input ' OR '1'='1  --> tetap gagal
+        $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = ?');
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            // Cegah Session Fixation
+            session_regenerate_id(true);
+            $_SESSION['user_id']        = $user['id'];
+            $_SESSION['username']       = $user['username'];
+            $_SESSION['login_attempts'] = 0; // reset counter
+            header('Location: index.php');
+            exit;
+        } else {
+            $_SESSION['login_attempts']++;
+            if ($_SESSION['login_attempts'] >= 5) {
+                $_SESSION['login_lock_until'] = time() + 60;
+                $_SESSION['login_attempts']   = 0;
+                $error = 'Terlalu banyak percobaan gagal. Coba lagi dalam 60 detik.';
+            } else {
+                $sisa  = 5 - $_SESSION['login_attempts'];
+                $error = "Username atau password salah. (sisa percobaan: $sisa)";
+            }
+        }
     }
 }
 ?>

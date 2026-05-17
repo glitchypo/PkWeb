@@ -9,10 +9,10 @@ mendemonstrasikan **6 aspek keamanan web** dalam satu studi kasus.
 
 | # | Aspek | Lokasi di Kode | Teknik |
 |---|---|---|---|
-| 1 | **Input Validation & XSS** | `index.php` (output pesan), `post.php` (validasi panjang & whitelist regex username) | `htmlspecialchars()` + `preg_match()` whitelist |
+| 1 | **Input Validation & XSS** | `index.php` (output pesan), `post.php` (validasi panjang & whitelist regex username) | `htmlspecialchars()` + `preg_match()` whitelist + security headers (CSP, X-Frame-Options, X-Content-Type-Options) |
 | 2 | **SQL Injection** | semua query di `index.php` & `post.php` | PDO prepared statement (`?` placeholder) + `ATTR_EMULATE_PREPARES=false` |
-| 3 | **Password Security** | register & login di `index.php` | `password_hash(PASSWORD_BCRYPT)` & `password_verify()` |
-| 4 | **Session Management** | `config.php` | `session_regenerate_id(true)` saat login, cookie `HttpOnly` + `SameSite=Strict`, idle timeout 15 menit, CSRF token |
+| 3 | **Password Security** | register & login di `index.php` | `password_hash(PASSWORD_BCRYPT)` & `password_verify()` + **password complexity** (huruf besar+kecil+angka) + **rate-limit login** (5 percobaan → lock 60 detik) |
+| 4 | **Session Management** | `config.php` + `logout.php` | `session_regenerate_id(true)` saat login, cookie `HttpOnly` + `SameSite=Strict`, idle timeout 15 menit, CSRF token, **logout via POST + CSRF** |
 | 5 | **File Upload** | `post.php` | Validasi MIME via `finfo` + whitelist ekstensi + ukuran max 2MB + rename dengan `bin2hex(random_bytes())` |
 | 6 | **Permission Server** | `uploads/.htaccess` + `chmod 0644` | Block eksekusi PHP di folder upload + Options `-Indexes -ExecCGI` |
 
@@ -167,11 +167,46 @@ Urutan rekomendasi penjelasan (durasi ±15 menit):
 
 ---
 
+### 🔴 7. Demo Rate-Limit Login (brute-force diblok)
+- Logout dulu kalau masih login
+- Coba login dengan password salah 5x berturut-turut
+- Pada percobaan ke-5: muncul **"Terlalu banyak percobaan login gagal. Coba lagi dalam 60 detik."**
+- Tunggu 60 detik (atau buka tab incognito) → bisa login lagi
+
+> **Penjelasan**: counter `$_SESSION['login_attempts']` + `$_SESSION['login_lock_until']` di `index.php` melindungi dari brute-force.
+
+---
+
+### 🔴 8. Demo Password Complexity (register ditolak)
+- Klik **Daftar**
+- Username: `testweak`, Password: `passwordlemah` (tanpa huruf besar/angka)
+- Submit → **"Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, dan angka."**
+- Ulang dengan password `Password123` → berhasil
+
+> **Penjelasan**: regex `(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}` di `index.php` memaksa kombinasi.
+
+---
+
+### 🔴 9. Demo Logout POST + CSRF (forced-logout diblok)
+- Login dulu
+- Akses langsung `http://localhost/PkWeb/logout.php` di address bar → muncul **"405 Method Not Allowed"**
+- Logout hanya bisa via tombol di nav (POST + CSRF token)
+
+> **Penjelasan**: kalau `<img src="logout.php">` ditaruh di situs lain (CSRF), tidak akan jalan karena method bukan POST.
+
+---
+
 ## ⚠️ Catatan Keamanan Tambahan (untuk produksi)
 
-Aplikasi ini sudah aman untuk **demo edukasi**. Untuk produksi nyata, tambahkan:
-- HTTPS (set `secure: true` di session cookie)
-- Rate limiting (cegah brute-force login)
-- Content Security Policy header
-- Logging percobaan login gagal
+Aplikasi ini sudah aman untuk **demo edukasi** dan sudah punya:
+- ✅ HTTPS-ready (tinggal set `secure: true` di session cookie)
+- ✅ Rate limiting login
+- ✅ Content Security Policy + security headers
+- ✅ Password complexity
+
+Untuk produksi nyata, tambahkan:
+- Logging percobaan login gagal ke file/DB (bukan cuma session)
+- Two-factor authentication (2FA)
 - Backup berkala
+- Re-encode gambar saat upload (anti image-polyglot)
+- Subresource Integrity (SRI) untuk Tailwind CDN
