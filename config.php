@@ -104,10 +104,10 @@ function is_login(): bool {
     return !empty($_SESSION['user_id']);
 }
 
-/** Wajib login, kalau tidak redirect ke index */
+/** Wajib login, kalau tidak redirect ke login */
 function require_login(): void {
     if (!is_login()) {
-        header('Location: index.php');
+        header('Location: login.php');
         exit;
     }
 }
