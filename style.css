@@ -1,0 +1,14 @@
+/* style.css — sentuhan kecil di atas TailwindCSS */
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+article {
+    transition: transform .15s ease;
+}
+article:hover {
+    transform: translateY(-2px);
+}
+input:focus, textarea:focus {
+    outline: 2px solid #6366f1;
+    outline-offset: 1px;
+}

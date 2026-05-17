@@ -1,0 +1,18 @@
+# Database file (untuk testing dengan SQLite)
+guestbook.sqlite
+
+# Distribution archive (jangan commit)
+MiniGuestbook.zip
+*.zip
+
+# File upload yang di-generate
+uploads/*
+!uploads/.htaccess
+!uploads/.gitkeep
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
