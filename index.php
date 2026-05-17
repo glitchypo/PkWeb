@@ -1,62 +1,6 @@
 <?php
 require __DIR__ . '/config.php';
 
-$error = '';
-$success = '';
-
-// ============== HANDLE REGISTER ==============
-if (($_POST['action'] ?? '') === 'register') {
-    check_csrf();
-
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    // Validasi input (whitelist: huruf/angka/underscore, 3-20 char)
-    if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
-        $error = 'Username 3-20 karakter, huruf/angka/underscore saja.';
-    } elseif (strlen($password) < 8) {
-        $error = 'Password minimal 8 karakter.';
-    } else {
-        // Cek duplikat (PDO prepared statement -> aman SQL Injection)
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ?');
-        $stmt->execute([$username]);
-        if ($stmt->fetch()) {
-            $error = 'Username sudah dipakai.';
-        } else {
-            // password_hash -> bcrypt, otomatis pakai salt unik
-            $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $pdo->prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-            $stmt->execute([$username, $hash]);
-            $success = 'Registrasi berhasil! Silakan login.';
-        }
-    }
-}
-
-// ============== HANDLE LOGIN ==============
-if (($_POST['action'] ?? '') === 'login') {
-    check_csrf();
-
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    // PDO prepared statement -> aman dari SQL Injection
-    // Coba: ' OR '1'='1  --> tetap gagal karena diperlakukan sebagai string biasa
-    $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = ?');
-    $stmt->execute([$username]);
-    $user = $stmt->fetch();
-
-    if ($user && password_verify($password, $user['password_hash'])) {
-        // Cegah Session Fixation
-        session_regenerate_id(true);
-        $_SESSION['user_id']  = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        header('Location: index.php');
-        exit;
-    } else {
-        $error = 'Username atau password salah.';
-    }
-}
-
 // ============== AMBIL DAFTAR PESAN ==============
 $messages = $pdo->query(
     'SELECT m.id, m.message, m.photo, m.created_at, u.username
@@ -73,101 +17,127 @@ $messages = $pdo->query(
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body class="bg-slate-50 min-h-screen">
 
-<nav class="bg-indigo-600 text-white px-6 py-4 shadow flex justify-between items-center">
-    <h1 class="text-xl font-bold">📖 Mini Guestbook</h1>
-    <div class="text-sm">
-    <?php if (is_login()): ?>
-        Halo, <strong><?= e($_SESSION['username']) ?></strong> ·
-        <a href="post.php" class="underline">Tulis Pesan</a> ·
-        <a href="logout.php" class="underline">Logout</a>
-    <?php else: ?>
-        <span class="opacity-80">Belum login</span>
-    <?php endif; ?>
+<!-- Navbar -->
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+        <a href="index.php" class="flex items-center gap-2">
+            <span class="text-2xl">📖</span>
+            <span class="text-xl font-bold text-slate-800">Mini Guestbook</span>
+        </a>
+        <div class="flex items-center gap-3">
+        <?php if (is_login()): ?>
+            <span class="hidden sm:inline text-sm text-slate-600">
+                Halo, <strong class="text-indigo-600"><?= e($_SESSION['username']) ?></strong>
+            </span>
+            <a href="post.php"
+               class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition-all hover:shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Tulis Pesan
+            </a>
+            <a href="logout.php"
+               class="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium px-4 py-2 rounded-lg transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Logout
+            </a>
+        <?php else: ?>
+            <a href="login.php"
+               class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition-all hover:shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Login
+            </a>
+            <a href="register.php"
+               class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition-all hover:shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Daftar
+            </a>
+        <?php endif; ?>
+        </div>
     </div>
 </nav>
 
-<div class="max-w-5xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-    <!-- Kolom kiri: form login/register -->
-    <aside class="md:col-span-1">
+<!-- Hero Section -->
+<header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white py-12 sm:py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+        <h1 class="text-3xl sm:text-4xl font-extrabold mb-3">Buku Tamu Digital</h1>
+        <p class="text-lg text-white/80 max-w-2xl mx-auto">
+            Tinggalkan pesan, berbagi cerita, dan sapa sesama pengunjung.
+            Aplikasi ini menerapkan <strong class="text-white">6 aspek keamanan web</strong>.
+        </p>
         <?php if (!is_login()): ?>
-            <div class="bg-white rounded-xl shadow p-5 mb-4">
-                <h2 class="font-semibold text-lg mb-3">🔐 Login</h2>
-                <?php if ($error): ?>
-                    <div class="bg-red-100 text-red-700 px-3 py-2 rounded text-sm mb-3"><?= e($error) ?></div>
-                <?php endif; ?>
-                <?php if ($success): ?>
-                    <div class="bg-green-100 text-green-700 px-3 py-2 rounded text-sm mb-3"><?= e($success) ?></div>
-                <?php endif; ?>
-                <form method="post" class="space-y-2">
-                    <input type="hidden" name="action" value="login">
-                    <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
-                    <input name="username" placeholder="Username" required
-                        class="w-full border rounded px-3 py-2">
-                    <input type="password" name="password" placeholder="Password" required
-                        class="w-full border rounded px-3 py-2">
-                    <button class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">
-                        Masuk
-                    </button>
-                </form>
-            </div>
-
-            <div class="bg-white rounded-xl shadow p-5">
-                <h2 class="font-semibold text-lg mb-3">📝 Daftar Akun</h2>
-                <form method="post" class="space-y-2">
-                    <input type="hidden" name="action" value="register">
-                    <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
-                    <input name="username" placeholder="Username (3-20)" required
-                        class="w-full border rounded px-3 py-2">
-                    <input type="password" name="password" placeholder="Password (min 8)" required
-                        class="w-full border rounded px-3 py-2">
-                    <button class="w-full bg-emerald-600 text-white py-2 rounded hover:bg-emerald-700">
-                        Daftar
-                    </button>
-                </form>
-            </div>
-        <?php else: ?>
-            <div class="bg-white rounded-xl shadow p-5">
-                <h2 class="font-semibold text-lg mb-2">👋 Selamat datang!</h2>
-                <p class="text-sm text-slate-600 mb-3">
-                    Anda login sebagai <strong><?= e($_SESSION['username']) ?></strong>.
-                </p>
-                <a href="post.php"
-                   class="block text-center bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">
-                    + Tulis Pesan Baru
+            <div class="mt-6 flex justify-center gap-3">
+                <a href="register.php" class="bg-white text-indigo-700 font-semibold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
+                    Mulai Menulis
                 </a>
             </div>
         <?php endif; ?>
-    </aside>
+    </div>
+</header>
 
-    <!-- Kolom kanan: daftar pesan -->
-    <main class="md:col-span-2 space-y-4">
-        <h2 class="text-2xl font-bold text-slate-800">💬 Pesan Tamu</h2>
+<!-- Daftar Pesan -->
+<main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span class="text-2xl">💬</span> Pesan Tamu
+            <span class="text-sm font-normal text-slate-500">(<?= count($messages) ?> pesan)</span>
+        </h2>
+    </div>
 
-        <?php if (empty($messages)): ?>
-            <div class="bg-white p-6 rounded-xl shadow text-center text-slate-500">
-                Belum ada pesan. Jadilah yang pertama!
-            </div>
-        <?php endif; ?>
-
+    <?php if (empty($messages)): ?>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-12 text-center">
+            <div class="text-5xl mb-4">📝</div>
+            <h3 class="text-lg font-semibold text-slate-700 mb-2">Belum Ada Pesan</h3>
+            <p class="text-slate-500">Jadilah yang pertama menulis di buku tamu ini!</p>
+        </div>
+    <?php else: ?>
+        <div class="space-y-4">
         <?php foreach ($messages as $m): ?>
-            <article class="bg-white rounded-xl shadow p-5">
-                <header class="flex justify-between items-center mb-2">
-                    <strong class="text-indigo-700"><?= e($m['username']) ?></strong>
-                    <span class="text-xs text-slate-500"><?= e($m['created_at']) ?></span>
-                </header>
-                <!-- e() = htmlspecialchars -> cegah XSS -->
-                <p class="text-slate-700 whitespace-pre-wrap"><?= e($m['message']) ?></p>
-                <?php if ($m['photo']): ?>
-                    <img src="uploads/<?= e($m['photo']) ?>"
-                         alt="foto" class="mt-3 rounded-lg max-h-64 border">
-                <?php endif; ?>
+            <article class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-start gap-4">
+                    <!-- Avatar -->
+                    <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm uppercase">
+                        <?= e(substr($m['username'], 0, 2)) ?>
+                    </div>
+                    <!-- Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-semibold text-slate-800"><?= e($m['username']) ?></span>
+                            <span class="text-xs text-slate-400">&bull;</span>
+                            <time class="text-xs text-slate-400"><?= e($m['created_at']) ?></time>
+                        </div>
+                        <!-- e() = htmlspecialchars -> cegah XSS -->
+                        <p class="text-slate-700 whitespace-pre-wrap leading-relaxed"><?= e($m['message']) ?></p>
+                        <?php if ($m['photo']): ?>
+                            <div class="mt-3">
+                                <img src="uploads/<?= e($m['photo']) ?>"
+                                     alt="foto lampiran"
+                                     class="rounded-xl max-h-72 border border-slate-200 shadow-sm">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </article>
         <?php endforeach; ?>
-    </main>
-</div>
+        </div>
+    <?php endif; ?>
+</main>
+
+<!-- Footer -->
+<footer class="border-t border-slate-200 bg-white mt-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 text-center text-sm text-slate-500">
+        <p>Mini Guestbook &mdash; Demo <strong>6 Aspek Keamanan Web</strong> dengan Native PHP</p>
+        <p class="mt-1 text-xs text-slate-400">XSS &bull; SQL Injection &bull; Password Hash &bull; Session &bull; File Upload &bull; Permission</p>
+    </div>
+</footer>
 
 </body>
 </html>

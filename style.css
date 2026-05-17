@@ -1,14 +1,48 @@
-/* style.css — sentuhan kecil di atas TailwindCSS */
+/* style.css — polish tambahan di atas TailwindCSS */
+
 body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
 }
+
+/* Hover effect pada card pesan */
 article {
-    transition: transform .15s ease;
+    transition: transform .2s ease, box-shadow .2s ease;
 }
 article:hover {
     transform: translateY(-2px);
 }
+
+/* Input focus glow */
 input:focus, textarea:focus {
-    outline: 2px solid #6366f1;
-    outline-offset: 1px;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* Smooth page transitions */
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Button press effect */
+button:active {
+    transform: scale(0.98) !important;
+}
+
+/* Scrollbar styling (Webkit) */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
