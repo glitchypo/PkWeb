@@ -1,0 +1,369 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8">
+<style>
+body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.8;margin:2.54cm}
+h1{font-size:16pt;font-weight:bold;text-align:center;margin-top:0}
+h2{font-size:14pt;font-weight:bold;margin-top:20pt}
+h3{font-size:12pt;font-weight:bold;margin-top:14pt}
+p{text-align:justify;margin-bottom:8pt;text-indent:1.27cm}
+p.ni{text-indent:0}
+p.c{text-align:center;text-indent:0}
+table{border-collapse:collapse;width:100%;margin:10pt 0}
+th,td{border:1px solid #000;padding:6pt 8pt;font-size:11pt}
+th{background:#f0f0f0;font-weight:bold;text-align:center}
+code{font-family:'Courier New',monospace;font-size:10pt;background:#f5f5f5;padding:1pt 3pt}
+pre{font-family:'Courier New',monospace;font-size:9.5pt;background:#f8f8f8;border:1px solid #ddd;padding:10pt;margin:8pt 0;white-space:pre-wrap}
+.pb{page-break-before:always}
+.ct{font-size:18pt;font-weight:bold;text-align:center;margin-top:72pt}
+.cs{font-size:14pt;text-align:center;margin-top:12pt}
+.ci{font-size:12pt;text-align:center;margin-top:48pt;line-height:2.2}
+ol,ul{margin-left:1cm;margin-bottom:8pt}
+li{margin-bottom:4pt}
+</style></head>
+<body>
+
+<!-- COVER -->
+<p class="ct">LAPORAN PRAKTIKUM</p>
+<p class="cs">KEAMANAN APLIKASI WEB</p>
+<p class="cs" style="margin-top:6pt;font-size:12pt">(Studi Kasus: Mini Guestbook &mdash; Native PHP)</p>
+
+<p class="ci" style="margin-top:100pt">
+Disusun untuk memenuhi tugas Praktikum<br>
+Mata Kuliah: Keamanan Sistem Informasi / Pemrograman Web</p>
+
+<p class="ci" style="margin-top:60pt">
+<b>Disusun oleh:</b><br>
+Nama: [Nama Lengkap]<br>
+NIM: [NIM]<br>
+Kelas: [Kelas]</p>
+
+<p class="ci" style="margin-top:72pt">
+<b>PROGRAM STUDI TEKNIK INFORMATIKA</b><br>
+<b>[NAMA UNIVERSITAS]</b><br>
+<b>2025</b></p>
+
+<!-- DAFTAR ISI -->
+<div class="pb"></div>
+<h1>DAFTAR ISI</h1>
+<table style="border:none">
+<tr><td style="border:none">Halaman Judul</td><td style="border:none;text-align:right;width:40px">i</td></tr>
+<tr><td style="border:none">Daftar Isi</td><td style="border:none;text-align:right">ii</td></tr>
+<tr><td style="border:none">1. Pendahuluan</td><td style="border:none;text-align:right">1</td></tr>
+<tr><td style="border:none">2. Deskripsi Aplikasi</td><td style="border:none;text-align:right">2</td></tr>
+<tr><td style="border:none">3. Implementasi Keamanan</td><td style="border:none;text-align:right">4</td></tr>
+<tr><td style="border:none">&emsp;3.1 Validasi Input &amp; Pencegahan XSS</td><td style="border:none;text-align:right">4</td></tr>
+<tr><td style="border:none">&emsp;3.2 Pencegahan SQL Injection</td><td style="border:none;text-align:right">5</td></tr>
+<tr><td style="border:none">&emsp;3.3 Keamanan Password</td><td style="border:none;text-align:right">6</td></tr>
+<tr><td style="border:none">&emsp;3.4 Session Management</td><td style="border:none;text-align:right">7</td></tr>
+<tr><td style="border:none">&emsp;3.5 File Upload Security</td><td style="border:none;text-align:right">8</td></tr>
+<tr><td style="border:none">&emsp;3.6 Permission Server</td><td style="border:none;text-align:right">9</td></tr>
+<tr><td style="border:none">4. Hasil Pengujian</td><td style="border:none;text-align:right">10</td></tr>
+<tr><td style="border:none">5. Kesimpulan</td><td style="border:none;text-align:right">12</td></tr>
+<tr><td style="border:none">6. Link Video Penjelasan</td><td style="border:none;text-align:right">13</td></tr>
+<tr><td style="border:none">Daftar Pustaka</td><td style="border:none;text-align:right">14</td></tr>
+</table>
+
+</body></html>
+
+
+<!-- 1. PENDAHULUAN -->
+<div class="pb"></div>
+<h1>1. PENDAHULUAN</h1>
+
+<p>Keamanan merupakan aspek fundamental yang tidak bisa diabaikan dalam pengembangan aplikasi web. Di era digital saat ini, serangan terhadap aplikasi web terus meningkat baik dari segi kuantitas maupun kompleksitas. Mulai dari pencurian data pengguna, penyisipan kode berbahaya, hingga pengambilalihan server secara penuh &mdash; semua berawal dari celah keamanan yang dibiarkan terbuka pada level kode program.</p>
+
+<p>Laporan ini menyajikan hasil praktikum implementasi keamanan aplikasi web menggunakan PHP native. Dipilihnya PHP native (tanpa framework) bertujuan agar setiap mekanisme keamanan dapat dipahami secara mendalam dari akar konsepnya, bukan sekadar memanggil fungsi bawaan framework yang bersifat <i>black box</i>.</p>
+
+<p>Studi kasus yang digunakan adalah <b>Mini Guestbook</b> &mdash; aplikasi buku tamu digital sederhana yang memungkinkan pengguna mendaftar, login, menulis pesan, serta melampirkan foto. Meskipun sederhana, aplikasi ini secara natural memerlukan penerapan enam aspek keamanan utama yang menjadi fokus praktikum, yaitu: pencegahan XSS, pencegahan SQL Injection, keamanan password, manajemen session, keamanan file upload, dan konfigurasi permission server.</p>
+
+<p>Seluruh kode sumber tersedia secara publik pada repository:</p>
+<p class="c"><b>https://github.com/glitchypo/PkWeb</b></p>
+
+<p>Teknologi yang digunakan meliputi:</p>
+<ul>
+<li>PHP 8.x (native, tanpa framework)</li>
+<li>MariaDB / MySQL sebagai database</li>
+<li>PDO (PHP Data Objects) untuk akses database</li>
+<li>Apache dengan .htaccess untuk konfigurasi server</li>
+<li>TailwindCSS (via CDN) untuk tampilan antarmuka</li>
+</ul>
+
+<!-- 2. DESKRIPSI APLIKASI -->
+<div class="pb"></div>
+<h1>2. DESKRIPSI APLIKASI</h1>
+
+<h2>2.1 Gambaran Umum</h2>
+<p>Mini Guestbook adalah aplikasi buku tamu digital yang memiliki fitur dasar: registrasi akun, login, penulisan pesan, upload foto lampiran, dan logout. Aplikasi ini dirancang minimalis (hanya 6 file PHP utama) agar mudah dipahami dan dijelaskan dalam video presentasi.</p>
+
+<h2>2.2 Struktur File</h2>
+<pre>
+PkWeb/
+├── config.php        → Konfigurasi DB, session, dan helper keamanan
+├── login.php         → Halaman login (full-page, terpisah)
+├── register.php      → Halaman registrasi (full-page, terpisah)
+├── index.php         → Halaman utama: daftar pesan tamu
+├── post.php          → Form tulis pesan + upload foto
+├── logout.php        → Proses logout (POST + CSRF)
+├── style.css         → Styling tambahan
+├── database.sql      → Schema database + akun demo
+└── uploads/
+    └── .htaccess     → Konfigurasi permission folder upload
+</pre>
+
+<h2>2.3 Skema Database</h2>
+<table>
+<tr><th>Tabel</th><th>Kolom Utama</th><th>Keterangan</th></tr>
+<tr><td>users</td><td>id, username, password_hash, created_at</td><td>Data pengguna dengan password ter-hash bcrypt</td></tr>
+<tr><td>messages</td><td>id, user_id, message, photo, created_at</td><td>Pesan tamu beserta path foto lampiran</td></tr>
+</table>
+
+<h2>2.4 Alur Penggunaan</h2>
+<ol>
+<li><b>Guest</b> mengunjungi halaman utama &rarr; melihat daftar pesan tamu.</li>
+<li>Guest mendaftar melalui halaman <code>register.php</code> dengan password yang memenuhi syarat kompleksitas.</li>
+<li>User login melalui <code>login.php</code> &rarr; session aktif.</li>
+<li>User menulis pesan dan (opsional) mengunggah foto melalui <code>post.php</code>.</li>
+<li>Pesan tampil di halaman utama dengan foto yang telah divalidasi.</li>
+<li>User logout melalui tombol yang menggunakan form POST + CSRF token.</li>
+</ol>
+
+
+<!-- 3. IMPLEMENTASI KEAMANAN -->
+<div class="pb"></div>
+<h1>3. IMPLEMENTASI KEAMANAN</h1>
+
+<h2>3.1 Validasi Input dan Pencegahan XSS</h2>
+<p>Cross-Site Scripting (XSS) terjadi ketika input pengguna ditampilkan kembali ke halaman tanpa di-escape, sehingga browser mengeksekusi kode JavaScript yang disisipkan penyerang. Pada aplikasi ini, setiap output yang berasal dari input pengguna di-escape menggunakan helper function <code>e()</code>:</p>
+
+<pre>
+// config.php
+function e(string $s): string {
+    return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+</pre>
+
+<p>Fungsi ini mengubah karakter-karakter berbahaya seperti <code>&lt;</code>, <code>&gt;</code>, <code>&quot;</code>, dan <code>&amp;</code> menjadi entitas HTML. Dengan demikian, jika seseorang mengirim pesan berisi <code>&lt;script&gt;alert('hack')&lt;/script&gt;</code>, yang tampil di browser hanyalah teks biasa, bukan kode yang dieksekusi.</p>
+
+<p>Selain itu, validasi input juga dilakukan pada sisi server: username divalidasi menggunakan regex whitelist (<code>/^[a-zA-Z0-9_]{3,20}$/</code>) dan panjang pesan dibatasi maksimal 1000 karakter.</p>
+
+<h2>3.2 Pencegahan SQL Injection</h2>
+<p>SQL Injection memungkinkan penyerang memanipulasi query database melalui input yang tidak ter-sanitasi. Pencegahan dilakukan dengan menggunakan PDO prepared statement secara konsisten di seluruh query:</p>
+
+<pre>
+// login.php — contoh query login yang aman
+$stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = ?');
+$stmt->execute([$username]);
+$user = $stmt->fetch();
+</pre>
+
+<p>Dengan prepared statement, input pengguna diperlakukan sebagai data murni, bukan bagian dari struktur SQL. Sehingga meskipun penyerang memasukkan <code>' OR '1'='1</code>, query tetap mencari username dengan string tersebut secara literal.</p>
+
+<p>Sebagai pertahanan tambahan, koneksi PDO dikonfigurasi dengan <code>ATTR_EMULATE_PREPARES = false</code> untuk memastikan prepared statement diproses secara nyata oleh database engine, bukan hanya di-emulasi oleh PHP.</p>
+
+<div class="pb"></div>
+<h2>3.3 Keamanan Password</h2>
+<p>Password tidak pernah disimpan dalam bentuk plaintext. Aplikasi menggunakan fungsi <code>password_hash()</code> dengan algoritma bcrypt yang secara otomatis menghasilkan salt unik untuk setiap password:</p>
+
+<pre>
+// register.php — saat user mendaftar
+$hash = password_hash($password, PASSWORD_BCRYPT);
+$stmt = $pdo->prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
+$stmt->execute([$username, $hash]);
+</pre>
+
+<p>Saat login, verifikasi dilakukan dengan <code>password_verify()</code> yang membandingkan password input dengan hash yang tersimpan:</p>
+
+<pre>
+// login.php — verifikasi password
+if ($user && password_verify($password, $user['password_hash'])) {
+    // login berhasil
+}
+</pre>
+
+<p>Selain itu, diterapkan juga <b>password complexity</b>: password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, serta angka. Validasi ini menggunakan regex:</p>
+
+<pre>
+if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
+    $error = 'Password harus mengandung huruf besar, huruf kecil, dan angka.';
+}
+</pre>
+
+<p>Sebagai mekanisme tambahan, terdapat <b>rate-limiting</b> pada halaman login: setelah 5 kali percobaan gagal, akun dikunci selama 60 detik.</p>
+
+<h2>3.4 Session Management</h2>
+<p>Pengelolaan session yang aman sangat krusial untuk mencegah pembajakan identitas pengguna. Beberapa mekanisme yang diterapkan:</p>
+
+<p class="ni"><b>a) Cookie Configuration</b></p>
+<pre>
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path'     => '/',
+    'httponly'  => true,     // JS tidak bisa baca cookie
+    'samesite' => 'Strict', // cegah CSRF via cross-origin
+]);
+</pre>
+
+<p class="ni"><b>b) Session Regeneration</b> &mdash; saat login berhasil, ID session di-regenerasi untuk mencegah session fixation:</p>
+<pre>session_regenerate_id(true);</pre>
+
+<p class="ni"><b>c) Idle Timeout</b> &mdash; session otomatis berakhir setelah 15 menit tidak ada aktivitas.</p>
+
+<p class="ni"><b>d) CSRF Token</b> &mdash; setiap form dilengkapi token unik yang divalidasi saat submit:</p>
+<pre>
+// generate token (config.php)
+$_SESSION['csrf'] = bin2hex(random_bytes(32));
+
+// validasi (setiap POST handler)
+function check_csrf(): void {
+    if (!hash_equals($_SESSION['csrf'], $_POST['csrf'] ?? '')) {
+        http_response_code(419);
+        die('CSRF token tidak valid.');
+    }
+}
+</pre>
+
+<p class="ni"><b>e) Logout via POST</b> &mdash; tombol logout menggunakan form POST + CSRF token, mencegah serangan forced-logout melalui tag <code>&lt;img&gt;</code> atau link.</p>
+
+
+<div class="pb"></div>
+<h2>3.5 File Upload Security</h2>
+<p>Upload file merupakan titik masuk serangan yang paling kritis. Penyerang dapat mengunggah web shell (file PHP) yang memberikan kontrol penuh atas server. Mekanisme pertahanan berlapis yang diterapkan:</p>
+
+<p class="ni"><b>Langkah 1: Cek error dan ukuran</b></p>
+<pre>
+if ($f['error'] !== UPLOAD_ERR_OK) { /* tolak */ }
+if ($f['size'] > 2 * 1024 * 1024) { /* maks 2MB */ }
+</pre>
+
+<p class="ni"><b>Langkah 2: Validasi MIME type via finfo</b> (membaca isi file asli, bukan header user):</p>
+<pre>
+$finfo = new finfo(FILEINFO_MIME_TYPE);
+$mime  = $finfo->file($f['tmp_name']);
+$allowedMime = ['image/jpeg'=>'jpg', 'image/png'=>'png', 'image/webp'=>'webp'];
+if (!isset($allowedMime[$mime])) { /* tolak */ }
+</pre>
+
+<p class="ni"><b>Langkah 3: Whitelist ekstensi</b> (double-check):</p>
+<pre>
+$ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+if (!in_array($ext, ['jpg','jpeg','png','webp'], true)) { /* tolak */ }
+</pre>
+
+<p class="ni"><b>Langkah 4: Rename file dengan string random</b> (cegah path traversal dan overwrite):</p>
+<pre>
+$photoName = bin2hex(random_bytes(16)) . '.' . $allowedMime[$mime];
+</pre>
+
+<p class="ni"><b>Langkah 5: Set permission non-executable:</b></p>
+<pre>chmod($dest, 0644);</pre>
+
+<h2>3.6 Permission Server (.htaccess)</h2>
+<p>Meskipun validasi di level aplikasi sudah ketat, konfigurasi server menjadi lapisan pertahanan terakhir. File <code>uploads/.htaccess</code> memastikan bahwa sekalipun file PHP berhasil masuk ke folder upload, file tersebut tidak akan pernah dieksekusi:</p>
+
+<pre>
+# Blokir eksekusi file script
+&lt;FilesMatch "\.(php|phtml|php3|php4|php5|php7|phar|pl|py|jsp|asp|sh|cgi)$"&gt;
+    Require all denied
+&lt;/FilesMatch&gt;
+
+# Matikan engine PHP di folder ini
+&lt;IfModule mod_php.c&gt;
+    php_flag engine off
+&lt;/IfModule&gt;
+
+# Hanya izinkan file gambar
+&lt;FilesMatch "\.(jpg|jpeg|png|webp|gif)$"&gt;
+    Require all granted
+&lt;/FilesMatch&gt;
+
+# Cegah directory listing
+Options -Indexes -ExecCGI
+</pre>
+
+<p>Dengan konfigurasi ini, akses langsung ke <code>uploads/shell.php</code> akan menghasilkan respons <b>403 Forbidden</b> dari Apache.</p>
+
+<!-- 4. HASIL PENGUJIAN -->
+<div class="pb"></div>
+<h1>4. HASIL PENGUJIAN</h1>
+
+<p>Pengujian dilakukan secara end-to-end menggunakan PHP built-in server dan curl untuk mensimulasikan berbagai skenario serangan. Berikut ringkasan hasil pengujian:</p>
+
+<table>
+<tr><th>No</th><th>Skenario Pengujian</th><th>Input / Aksi</th><th>Hasil</th><th>Status</th></tr>
+<tr><td>1</td><td>SQL Injection pada login</td><td>Username: <code>' OR '1'='1</code></td><td>Login ditolak, muncul pesan error</td><td>AMAN</td></tr>
+<tr><td>2</td><td>XSS pada pesan</td><td><code>&lt;script&gt;alert('xss')&lt;/script&gt;</code></td><td>Tampil sebagai teks biasa, tidak dieksekusi</td><td>AMAN</td></tr>
+<tr><td>3</td><td>Password hash</td><td>Cek tabel users di database</td><td>Password tersimpan sebagai <code>$2y$12$...</code> (bcrypt)</td><td>AMAN</td></tr>
+<tr><td>4</td><td>Password lemah</td><td>Daftar dengan password "weak"</td><td>Ditolak: harus ada huruf besar+kecil+angka</td><td>AMAN</td></tr>
+<tr><td>5</td><td>Upload shell.php</td><td>Upload file PHP dengan MIME palsu</td><td>Ditolak: "Hanya JPG/PNG/WEBP yang diizinkan"</td><td>AMAN</td></tr>
+<tr><td>6</td><td>Akses langsung uploads/shell.php</td><td>Request GET ke file PHP di folder upload</td><td>HTTP 403 Forbidden</td><td>AMAN</td></tr>
+<tr><td>7</td><td>CSRF protection</td><td>POST tanpa token CSRF</td><td>HTTP 419, request ditolak</td><td>AMAN</td></tr>
+<tr><td>8</td><td>Session fixation</td><td>Cek cookie sebelum &amp; sesudah login</td><td>Session ID berubah (regenerated)</td><td>AMAN</td></tr>
+<tr><td>9</td><td>Logout GET (forced logout)</td><td>Akses logout.php via GET</td><td>HTTP 405 Method Not Allowed</td><td>AMAN</td></tr>
+<tr><td>10</td><td>Rate-limit login</td><td>5x login gagal berturut-turut</td><td>Dikunci 60 detik</td><td>AMAN</td></tr>
+<tr><td>11</td><td>CSP Header</td><td>Inspect response headers</td><td>Content-Security-Policy aktif</td><td>AMAN</td></tr>
+<tr><td>12</td><td>Akses post.php tanpa login</td><td>Request tanpa session</td><td>Redirect 302 ke login.php</td><td>AMAN</td></tr>
+</table>
+
+<p>Seluruh 12 skenario pengujian menunjukkan hasil <b>AMAN</b>, yang berarti mekanisme keamanan yang diterapkan berfungsi sesuai harapan.</p>
+
+<!-- 5. KESIMPULAN -->
+<div class="pb"></div>
+<h1>5. KESIMPULAN</h1>
+
+<p>Berdasarkan implementasi dan pengujian yang telah dilakukan, dapat ditarik beberapa kesimpulan sebagai berikut:</p>
+
+<ol>
+<li><b>Pencegahan XSS</b> berhasil diterapkan melalui fungsi <code>htmlspecialchars()</code> yang digunakan secara konsisten pada setiap output. Tag script yang disisipkan melalui pesan tidak pernah dieksekusi oleh browser.</li>
+
+<li><b>Pencegahan SQL Injection</b> efektif menggunakan PDO prepared statement. Input berbahaya seperti <code>' OR '1'='1</code> diperlakukan sebagai string biasa oleh database.</li>
+
+<li><b>Keamanan password</b> terjamin dengan penggunaan bcrypt yang menghasilkan hash unik (berbeda setiap kali meskipun password sama) dan tidak dapat di-reverse. Ditambah validasi kompleksitas saat registrasi.</li>
+
+<li><b>Session management</b> yang aman mencakup cookie HttpOnly + SameSite, regenerasi session ID, idle timeout, serta perlindungan CSRF pada setiap form termasuk logout.</li>
+
+<li><b>Keamanan upload file</b> berlapis: validasi MIME asli via finfo, whitelist ekstensi, pembatasan ukuran, dan rename random. Pendekatan ini mencegah eksekusi file berbahaya pada level aplikasi.</li>
+
+<li><b>Permission server</b> melalui .htaccess memberikan lapisan pertahanan terakhir yang memastikan file script tidak akan pernah dieksekusi di folder upload, bahkan jika berhasil lolos dari validasi aplikasi.</li>
+</ol>
+
+<p>Keenam aspek keamanan ini saling melengkapi dalam pendekatan <i>defense in depth</i> &mdash; apabila satu lapisan gagal, lapisan berikutnya tetap melindungi sistem. Pemahaman terhadap implementasi langsung (tanpa framework) memberikan fondasi yang kuat untuk memahami mengapa dan bagaimana setiap mekanisme keamanan bekerja.</p>
+
+<!-- 6. LINK VIDEO -->
+<div class="pb"></div>
+<h1>6. LINK VIDEO PENJELASAN</h1>
+
+<p>Video penjelasan kode program beserta demonstrasi serangan dan pertahanan untuk masing-masing aspek keamanan dapat diakses pada link berikut:</p>
+
+<table>
+<tr><th>Komponen</th><th>Link</th></tr>
+<tr><td>Video Penjelasan Lengkap (10-15 menit)</td><td><b>[PASTE LINK VIDEO YOUTUBE DI SINI]</b></td></tr>
+<tr><td>Repository Source Code</td><td>https://github.com/glitchypo/PkWeb</td></tr>
+</table>
+
+<p class="ni" style="margin-top:12pt"><b>Timestamp Video:</b></p>
+<table>
+<tr><th>Menit</th><th>Topik</th></tr>
+<tr><td>00:00 - 01:30</td><td>Pembukaan &amp; tour aplikasi</td></tr>
+<tr><td>01:30 - 03:30</td><td>Validasi Input &amp; Pencegahan XSS</td></tr>
+<tr><td>03:30 - 05:30</td><td>Pencegahan SQL Injection</td></tr>
+<tr><td>05:30 - 07:30</td><td>Keamanan Password (bcrypt + complexity)</td></tr>
+<tr><td>07:30 - 09:30</td><td>Session Management (cookie, CSRF, regenerate)</td></tr>
+<tr><td>09:30 - 11:30</td><td>File Upload Security</td></tr>
+<tr><td>11:30 - 13:00</td><td>Permission Server (.htaccess)</td></tr>
+<tr><td>13:00 - 14:30</td><td>Penutup &amp; kesimpulan</td></tr>
+</table>
+
+<!-- DAFTAR PUSTAKA -->
+<div class="pb"></div>
+<h1>DAFTAR PUSTAKA</h1>
+
+<ol>
+<li>OWASP Foundation. (2021). <i>OWASP Top Ten Web Application Security Risks</i>. https://owasp.org/www-project-top-ten/</li>
+<li>PHP Documentation. (2024). <i>Password Hashing</i>. https://www.php.net/manual/en/book.password.php</li>
+<li>PHP Documentation. (2024). <i>PDO Prepared Statements</i>. https://www.php.net/manual/en/pdo.prepared-statements.php</li>
+<li>Mozilla Developer Network. (2024). <i>Content Security Policy (CSP)</i>. https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP</li>
+<li>PHP Documentation. (2024). <i>Session Management</i>. https://www.php.net/manual/en/book.session.php</li>
+<li>Apache Software Foundation. (2024). <i>.htaccess Files</i>. https://httpd.apache.org/docs/current/howto/htaccess.html</li>
+</ol>
+
+</body></html>
