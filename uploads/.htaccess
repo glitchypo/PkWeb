@@ -1,0 +1,28 @@
+# ===== KEAMANAN FOLDER UPLOAD =====
+# Tujuan: cegah file PHP/script yang ter-upload dieksekusi server.
+# Walaupun penyerang berhasil menyusupkan shell.php, akses langsung
+# ke uploads/shell.php akan diblokir 403 oleh Apache.
+
+# 1) Matikan eksekusi PHP & script lain
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phar|pl|py|jsp|asp|sh|cgi)$">
+    Require all denied
+</FilesMatch>
+
+# 2) Matikan handler PHP di folder ini (Apache 2.4+)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# 3) Hanya izinkan tipe file gambar saja
+<FilesMatch "\.(jpg|jpeg|png|webp|gif)$">
+    Require all granted
+</FilesMatch>
+
+# 4) Cegah directory listing
+Options -Indexes -ExecCGI
