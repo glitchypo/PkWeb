@@ -14,8 +14,9 @@ if (($_POST['action'] ?? '') === 'register') {
     // Validasi input (whitelist: huruf/angka/underscore, 3-20 char)
     if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
         $error = 'Username 3-20 karakter, huruf/angka/underscore saja.';
-    } elseif (strlen($password) < 8) {
-        $error = 'Password minimal 8 karakter.';
+    } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
+        // Password complexity: min 8 char + huruf besar + huruf kecil + angka
+        $error = 'Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, dan angka.';
     } else {
         // Cek duplikat (PDO prepared statement -> aman SQL Injection)
         $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ?');
@@ -36,24 +37,42 @@ if (($_POST['action'] ?? '') === 'register') {
 if (($_POST['action'] ?? '') === 'login') {
     check_csrf();
 
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    // Rate-limit sederhana: 5 percobaan gagal -> dikunci 60 detik
+    if (!isset($_SESSION['login_attempts']))   $_SESSION['login_attempts']   = 0;
+    if (!isset($_SESSION['login_lock_until'])) $_SESSION['login_lock_until'] = 0;
 
-    // PDO prepared statement -> aman dari SQL Injection
-    // Coba: ' OR '1'='1  --> tetap gagal karena diperlakukan sebagai string biasa
-    $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = ?');
-    $stmt->execute([$username]);
-    $user = $stmt->fetch();
-
-    if ($user && password_verify($password, $user['password_hash'])) {
-        // Cegah Session Fixation
-        session_regenerate_id(true);
-        $_SESSION['user_id']  = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        header('Location: index.php');
-        exit;
+    if (time() < $_SESSION['login_lock_until']) {
+        $wait = $_SESSION['login_lock_until'] - time();
+        $error = "Terlalu banyak percobaan login gagal. Coba lagi dalam $wait detik.";
     } else {
-        $error = 'Username atau password salah.';
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        // PDO prepared statement -> aman dari SQL Injection
+        // Coba: ' OR '1'='1  --> tetap gagal karena diperlakukan sebagai string biasa
+        $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = ?');
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            // Cegah Session Fixation
+            session_regenerate_id(true);
+            $_SESSION['user_id']        = $user['id'];
+            $_SESSION['username']       = $user['username'];
+            $_SESSION['login_attempts'] = 0;
+            header('Location: index.php');
+            exit;
+        } else {
+            $_SESSION['login_attempts']++;
+            if ($_SESSION['login_attempts'] >= 5) {
+                $_SESSION['login_lock_until'] = time() + 60;
+                $_SESSION['login_attempts']   = 0;
+                $error = 'Terlalu banyak percobaan login gagal. Coba lagi dalam 60 detik.';
+            } else {
+                $sisa  = 5 - $_SESSION['login_attempts'];
+                $error = "Username atau password salah. (sisa percobaan: $sisa)";
+            }
+        }
     }
 }
 
@@ -81,7 +100,10 @@ $messages = $pdo->query(
     <?php if (is_login()): ?>
         Halo, <strong><?= e($_SESSION['username']) ?></strong> ·
         <a href="post.php" class="underline">Tulis Pesan</a> ·
-        <a href="logout.php" class="underline">Logout</a>
+        <form method="post" action="logout.php" class="inline">
+            <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
+            <button type="submit" class="underline cursor-pointer bg-transparent border-0 p-0 text-white">Logout</button>
+        </form>
     <?php else: ?>
         <span class="opacity-80">Belum login</span>
     <?php endif; ?>
@@ -121,7 +143,8 @@ $messages = $pdo->query(
                     <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
                     <input name="username" placeholder="Username (3-20)" required
                         class="w-full border rounded px-3 py-2">
-                    <input type="password" name="password" placeholder="Password (min 8)" required
+                    <input type="password" name="password"
+                        placeholder="Password (min 8, Aa1)" required
                         class="w-full border rounded px-3 py-2">
                     <button class="w-full bg-emerald-600 text-white py-2 rounded hover:bg-emerald-700">
                         Daftar

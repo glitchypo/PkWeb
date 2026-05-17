@@ -54,7 +54,23 @@ session_set_cookie_params([
 ]);
 session_start();
 
-// 2) Auto-logout setelah 15 menit idle
+// 2) Security headers tambahan (defense-in-depth)
+header('X-Frame-Options: DENY');                           // cegah clickjacking
+header('X-Content-Type-Options: nosniff');                 // cegah MIME-sniffing
+header('Referrer-Policy: strict-origin-when-cross-origin');
+// CSP — longgar untuk Tailwind CDN tapi cukup ketat untuk inline
+header(
+    "Content-Security-Policy: default-src 'self'; "
+  . "script-src 'self' https://cdn.tailwindcss.com; "
+  . "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; "
+  . "img-src 'self' data:; "
+  . "object-src 'none'; "
+  . "base-uri 'self'; "
+  . "form-action 'self'; "
+  . "frame-ancestors 'none'"
+);
+
+// 3) Auto-logout setelah 15 menit idle
 $IDLE_TIMEOUT = 15 * 60;
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $IDLE_TIMEOUT) {
     session_unset();
@@ -63,7 +79,7 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
 }
 $_SESSION['last_activity'] = time();
 
-// 3) CSRF Token
+// 4) CSRF Token
 if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
