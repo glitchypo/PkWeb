@@ -20,8 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validasi input (whitelist: huruf/angka/underscore, 3-20 char)
     if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
         $error = 'Username 3-20 karakter, huruf/angka/underscore saja.';
-    } elseif (strlen($password) < 8) {
-        $error = 'Password minimal 8 karakter.';
+    } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
+        // Password complexity: min 8 char + huruf besar + huruf kecil + angka
+        $error = 'Password minimal 8 karakter, harus ada huruf besar, huruf kecil, dan angka.';
     } elseif ($password !== $confirm) {
         $error = 'Konfirmasi password tidak cocok.';
     } else {
@@ -110,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </span>
                     <input type="password" name="password" required
                         class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                        placeholder="Minimal 8 karakter">
+                        placeholder="Min 8 karakter, huruf besar+kecil+angka">
                 </div>
             </div>
 
